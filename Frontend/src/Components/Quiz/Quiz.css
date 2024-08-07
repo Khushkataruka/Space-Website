@@ -1,0 +1,121 @@
+.quiz-video-container {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.quiz-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+    background: rgb(9 9 9 / 36%);
+    backdrop-filter: blur(10px);
+    padding: 40px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1), 0 12px 24px rgba(0, 0, 0, 0.1);
+    color: white;
+    margin-top: 80px;
+}
+
+.q-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.q-container hr {
+    height: 2px;
+    border: none;
+    background: #707070;
+}
+
+.q-container h1 {
+    font-size: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.q-container h2 {
+    font-size: 27px;
+    font-weight: 500;
+}
+
+.q-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.q-container ul li {
+    display: flex;
+    align-items: center;
+    height: 70px;
+    padding-left: 15px;
+    border: 1px solid #686868;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+.q-container ul li.correct {
+    background-color: green;
+    opacity: 0.8;
+}
+
+.q-container ul li.wrong {
+    background-color: red;
+    opacity: 0.8;
+}
+
+.q-container ul li:hover:not(.correct):not(.wrong) {
+    background-color: #4b4747eb;
+    color: white;
+}
+
+.quiz-next {
+    margin: 20px auto;
+    width: 250px;
+    height: 65px;
+    background-color: rgba(5, 5, 5, 0.8);
+    color: white;
+    font-size: 20px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.quiz-next:hover {
+    background-color: #000000eb;
+}
+
+.q-container .quiz-index {
+    margin: auto;
+    font-size: 18px;
+    text-align: center;
+}
+
+.quiz-result {
+    text-align: center;
+}
+
+.quiz-result h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
