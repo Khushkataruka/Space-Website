@@ -18,6 +18,15 @@ app.use(parser.json());
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI);
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // Use 'gmail' or another email service
+    auth: {
+        user: process.env.EMAIL_USER, // Your email address
+        pass: process.env.EMAIL_PASS  // Your email password or app-specific password
+    }
+});
+
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
