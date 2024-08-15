@@ -126,7 +126,7 @@ const GalaxyQuiz = () => {
                     ) : (
                         <div className="quiz-result">
                             <h2>Your Score: {score} / {questions.length}</h2>
-                            <button className="quiz-next" onClick={handleRetakeQuiz}>Retake quiz</button>
+                            <Link to={"/quiz"}><button className="quiz-next">Retake quiz</button></Link>
                         </div>
                     )}
                 </div>
