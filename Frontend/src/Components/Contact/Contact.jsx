@@ -14,7 +14,7 @@ const Contact = () => {
 
     const onSubmit = async (data) => {
         try {
-            const response = await fetch('http://localhost:3000/connect', {
+            const response = await fetch('http://localhost:3001/connect', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
