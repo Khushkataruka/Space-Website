@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const parser = require('body-parser');
 const bcrypt = require('bcrypt');
 const Login_model = require('./models/login');
-const Feedback_model = require('./models/Feedback')
+const Feedback_model = require('./models/Feedback');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 
@@ -14,44 +15,41 @@ const port = 3001;
 app.use(cors());
 app.use(parser.json());
 
-mongoose.connect("mongodb://localhost:27017/LoginSpaceData");
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI);
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');//response
+    res.send('Hello World!');
 });
 
-
-
 app.post('/register', async (req, res) => {
-    const user = await Login_model.findOne({ email: req.body.email });
-    if (!user) {
-        try {
-            if (req.body.confirmPassword === req.body.password) {
-                const hashedPassword = await bcrypt.hash(req.body.password, 10);
-                req.body.password = hashedPassword;
-                await Login_model.create(req.body);
-                res.status(201).send({
-                    message: "Registered successfully",
-                    status: 201,
-                    data: req.body
-                });
-            } else {
-                res.status(400).send({
-                    message: "Passwords do not match",
-                    status: 400
-                });
-            }
-        } catch (e) {
-            res.status(500).send({
-                message: "Error occurred during registration",
-                status: 500,
-                error: e.message
+    try {
+        const user = await Login_model.findOne({ email: req.body.email });
+        if (user) {
+            return res.status(400).send({
+                message: "Email already exists",
+                status: 400
             });
         }
-    } else {
-        res.status(400).send({
-            message: "Email already exists",
-            status: 400
+        if (req.body.confirmPassword !== req.body.password) {
+            return res.status(400).send({
+                message: "Passwords do not match",
+                status: 400
+            });
+        }
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        req.body.password = hashedPassword;
+        await Login_model.create(req.body);
+        res.status(201).send({
+            message: "Registered successfully",
+            status: 201,
+            data: req.body
+        });
+    } catch (e) {
+        res.status(500).send({
+            message: "Error occurred during registration",
+            status: 500,
+            error: e.message
         });
     }
 });
@@ -76,7 +74,7 @@ app.post('/login', async (req, res) => {
         res.status(200).send({
             message: "Login successful",
             status: 200,
-            data: user,
+            data: user
         });
     } catch (e) {
         res.status(500).send({
@@ -88,7 +86,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.post("/forgot-password", async (req, res) => {
-    const { email } = req.body; // Corrected the variable name from 'mail' to 'email'
+    const { email } = req.body;
     try {
         const user = await Login_model.findOne({ email: email });
         if (!user) {
@@ -97,20 +95,10 @@ app.post("/forgot-password", async (req, res) => {
                 status: 404
             });
         }
-        const token = jwt.sign({ id: user._id }, "jwtwefvfdhgfvsdn123Fdsgv!@$233", { expiresIn: "1d" });
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            port: 465,
-            secure: true,
-            auth: {
-                user: 'cosmicvoyage001@gmail.com',
-                pass: 'rqwp ovqn qkbo svnb'
-            }
-        });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
         const mailOptions = {
-            from: 'cosmicvoyage001@gmail.com',
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Password Reset',
             text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
@@ -126,15 +114,13 @@ app.post("/forgot-password", async (req, res) => {
                     status: 500,
                     error: error.message
                 });
-            } else {
-                return res.status(200).send({
-                    message: "Password reset email sent successfully",
-                    status: 200,
-                    data: email
-                });
             }
+            res.status(200).send({
+                message: "Password reset email sent successfully",
+                status: 200,
+                data: email
+            });
         });
-
     } catch (e) {
         res.status(500).send({
             message: "An error occurred",
@@ -149,8 +135,7 @@ app.post("/reset-password/:id/:token", async (req, res) => {
     const { id, token } = req.params;
 
     try {
-        const decoded = jwt.verify(token, "jwtwefvfdhgfvsdn123Fdsgv!@$233");
-
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.id !== id) {
             return res.status(401).send({
                 message: "Invalid token",
@@ -184,35 +169,30 @@ app.post("/reset-password/:id/:token", async (req, res) => {
 });
 
 app.post('/connect', async (req, res) => {
-
     try {
         const user = await Login_model.findOne({ email: req.body.email });
         if (!user) {
-            return res.send({
-                message: "Register  with given email to connect",
-                status: 104
+            return res.status(400).send({
+                message: "Register with the given email to connect",
+                status: 400
             });
         }
-        else {
-            Feedback_model.create(req.body)
-            return res.send({
-                message: "Your Message Was recieved successfully",
-                staus: 208
-            })
-
-        }
-    }
-    catch (e) {
+        await Feedback_model.create(req.body);
+        res.status(200).send({
+            message: "Your message was received successfully",
+            status: 200
+        });
+    } catch (e) {
         res.status(500).send({
-            message: e.message,
-            status: 500
-        })
+            message: "An error occurred",
+            status: 500,
+            error: e.message
+        });
     }
-})
-app.post("/subscribe", async (req, res) => {
-    const email = req.body.Email; // Extract email from request body
-    console.log('Received email:', email); // For debugging
+});
 
+app.post("/subscribe", async (req, res) => {
+    const email = req.body.Email;
     if (!email) {
         return res.status(400).send({
             message: "Email is required",
@@ -221,7 +201,6 @@ app.post("/subscribe", async (req, res) => {
     }
 
     try {
-        // Check if user exists
         const user = await Login_model.findOne({ email });
         if (!user) {
             return res.status(401).send({
@@ -230,23 +209,13 @@ app.post("/subscribe", async (req, res) => {
             });
         }
 
-        // Set up email transporter
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'cosmicvoyage001@gmail.com',
-                pass: 'rqwp ovqn qkbo svnb'
-            }
-        });
-
         const mailOptions = {
-            from: 'cosmicvoyage001@gmail.com',
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Welcome Aboard Your Cosmic Voyage!',
             text: `Congratulations! ${user.name} You’ve just embarked on an extraordinary journey with Cosmic Voyage. Prepare to explore the wonders of the universe and stay tuned for stellar updates, exclusive content, and intergalactic adventures. Thank you for joining our cosmic crew!`
         };
 
-        // Send email
         await transporter.sendMail(mailOptions);
 
         res.status(200).send({
@@ -254,7 +223,6 @@ app.post("/subscribe", async (req, res) => {
             status: 200
         });
     } catch (error) {
-        console.error('Error sending email:', error); // Log the error for debugging
         res.status(500).send({
             message: "Failed to subscribe. Please try again later.",
             status: 500,
@@ -262,7 +230,6 @@ app.post("/subscribe", async (req, res) => {
         });
     }
 });
-
 
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
